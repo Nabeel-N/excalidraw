@@ -3,11 +3,12 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from './config';
 import { middleware } from "./middleware";
 import { CreateUserSchema, SigninSchema, CreateRoomSchema } from "@repo/common/types";
+import {prismaClient} from "@repo/db/client"
 
 const app = express();
 
 app.post("/signup", (req, res) => {
-
+  
     const data = CreateUserSchema.safeParse(req.body);
     if (!data.success) {
         res.json({
@@ -15,7 +16,6 @@ app.post("/signup", (req, res) => {
         })
         return;
     }
-    console.log(data);
     // db call
     res.json({
         userId: "123"
