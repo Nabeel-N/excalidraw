@@ -4,7 +4,7 @@ import { JWT_SECRET } from "./config";
 import { middleware } from "./middleware";
 import {
   CreateUserSchema,
-  SigninSchema,
+  SigninSchema,                               
   CreateRoomSchema,
 } from "@repo/common/types";
 import { prismaClient } from "@repo/db/client";
@@ -60,16 +60,17 @@ app.post("/signin", async (req: Request, res: Response): Promise<void> => {
   res.json({ token });
 });
 
-app.post("/room", middleware,  async (req: Request, res: Response): Promise<void> => {
+app.post(
+  "/room",
+  middleware,
+  async (req: Request, res: Response): Promise<void> => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
-    console.log(parsedData);
     if (!parsedData.success) {
       res.json({ message: "Incorrect inputs" });
       return;
     }
-// @ts-ignore: 
+    // @ts-ignore:
     const userId = req.userId;
-
     try {
       const room = await prismaClient.room.create({
         data: {
@@ -85,5 +86,5 @@ app.post("/room", middleware,  async (req: Request, res: Response): Promise<void
 );
 
 app.listen(3001, () => {
-  console.log("Server running on port 3001");
+  console.log("Server running on port 3001 ");
 });
