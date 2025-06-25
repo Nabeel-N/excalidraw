@@ -1,22 +1,46 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://turborepo.org/schema.json",
   "ui": "tui",
+
+  "globalDependencies": [
+    ".env*",
+
+    "apps/ws-backend/.env*",
+    "apps/http-backend/.env*",
+    "apps/web/.env*"
+  ],
+
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NEXT_PUBLIC_*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
+
     "lint": {
       "dependsOn": ["^lint"]
     },
+
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
+    },
+
+    "ws-backend#build": {
+      "dependsOn": ["^build"],
+      "env": ["JWT_SECRET", "DB_HOST", "PORT"],
+      "outputs": ["apps/ws-backend/dist/**"]
+    },
+
+    "http-backend#build": {
+      "dependsOn": ["^build"],
+      "env": ["JWT_SECRET", "DB_HOST", "PORT"],
+      "outputs": ["apps/http-backend/dist/**"]
     }
   }
 }

@@ -1,9 +1,11 @@
+import "dotenv/config"; // this reads that app’s ./apps/ws-backend/.env
 import { WebSocket, WebSocketServer } from "ws";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { prismaClient } from "@repo/db/client";
 
 const wss = new WebSocketServer({ port: 8080 });
+console.log(wss + "running on 8080");
 
 interface User {
   ws: WebSocket;
@@ -23,10 +25,9 @@ function checkUser(token: string): string | null {
 
     if (!decoded || !decoded.userId) {
       return null;
+    } else {
+      return decoded.userId;
     }
-
-    return decoded.userId;
-
   } catch (e) {
     console.log(e);
     return null;
@@ -45,7 +46,7 @@ wss.on("connection", function connection(ws, request) {
   const userId = checkUser(token);
 
   if (userId == null) {
-    ws.close(23, "some thing went wrongg");
+    ws.close(1008, "Unauthorized");
     return null;
   }
 
@@ -58,7 +59,8 @@ wss.on("connection", function connection(ws, request) {
   ws.on("message", async function message(data) {
     let parsedData;
     if (typeof data !== "string") {
-      parsedData = JSON.parse(data.toString());
+      const makeitstring = data.toString();
+      parsedData = JSON.parse(makeitstring);
     } else {
       parsedData = JSON.parse(data); // {type: "join-room", roomId: 1}
     }
@@ -79,10 +81,12 @@ wss.on("connection", function connection(ws, request) {
     console.log("message received");
     console.log(parsedData);
 
+    //CHAT
     if (parsedData.type === "chat") {
       const roomId = parsedData.roomId;
+      console.log(roomId);
       const message = parsedData.message;
-
+      console.log(message);
       await prismaClient.chat.create({
         data: {
           roomId: Number(roomId),
