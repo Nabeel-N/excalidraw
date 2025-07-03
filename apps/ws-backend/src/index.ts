@@ -18,7 +18,6 @@ const users: User[] = [];
 function checkUser(token: string): string | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
     if (typeof decoded == "string") {
       return null;
     }
@@ -59,8 +58,7 @@ wss.on("connection", function connection(ws, request) {
   ws.on("message", async function message(data) {
     let parsedData;
     if (typeof data !== "string") {
-      const makeitstring = data.toString();
-      parsedData = JSON.parse(makeitstring);
+      parsedData = JSON.parse(data.toString());
     } else {
       parsedData = JSON.parse(data); // {type: "join-room", roomId: 1}
     }
@@ -102,7 +100,7 @@ wss.on("connection", function connection(ws, request) {
               type: "chat",
               message: message,
               roomId,
-            })
+            }),
           );
         }
       });
