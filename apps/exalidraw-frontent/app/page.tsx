@@ -29,6 +29,7 @@ export default function App() {
             <p>Pricing</p>
             <p>Contact</p>
           </section>
+          <div className="rounded-2xl bg-red-800  p-1 m-1">Discover Nexa</div>
         </div>
       </div>
       <div className="flex justify-center items-center">
@@ -41,6 +42,12 @@ export default function App() {
         <div className="bg-linear-to-t from-sky-500 to-indigo-500 rounded-2xl p-1 m-1">
           Nexa
         </div>
+      </div>
+      <div className="flex items-center justify-center">
+        <div className="rounded-2xl bg-green-800  p-1 m-1">
+          Get Started For Free
+        </div>
+        <div className="rounded-2xl bg-red-800  p-1 m-1">Discover Nexa</div>
       </div>
     </div>
   );
