@@ -3,6 +3,8 @@ import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "./config";
 import { middleware } from "./middleware";
+import cors from "cors";
+
 import {
   CreateUserSchema,
   SigninSchema,
@@ -12,6 +14,7 @@ import { prismaClient } from "@repo/db/client";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/signup", async (req: Request, res: Response): Promise<void> => {
   const parsedData = CreateUserSchema.safeParse(req.body);
