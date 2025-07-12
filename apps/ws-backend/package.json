@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -b",
     "start": "node ./dist/index.js",
-    "dev": "npm run build && npm run start"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
@@ -18,7 +18,8 @@
     "@repo/backend-common": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.13.9",
-    "@types/ws": "^8.5.13"
+    "@types/ws": "^8.5.13",
+    "ts-node-dev": "^2.0.0"
   },
   "keywords": [],
   "author": "",

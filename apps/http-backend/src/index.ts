@@ -97,7 +97,7 @@ app.get("/chats/:roomId", async (req, res) => {
     orderBy: {
       id: "desc",
     },
-    take: 50,
+    take: 1000,
   });
   res.json({
     messages: messages,
@@ -116,8 +116,8 @@ app.get("/chats/:roomId", async (req, res) => {
       room,
     });
   });
+});
 
-  app.listen(3001, () => {
-    console.log("Server running on port 3001 ");
-  });
+app.listen(3001, () => {
+  console.log("Server running on port 3001 ");
 });

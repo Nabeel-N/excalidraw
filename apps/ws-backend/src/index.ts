@@ -5,7 +5,6 @@ import { JWT_SECRET } from "@repo/backend-common/config";
 import { prismaClient } from "@repo/db/client";
 
 const wss = new WebSocketServer({ port: 8080 });
-console.log(wss + "running on 8080");
 
 interface User {
   ws: WebSocket;
@@ -100,10 +99,12 @@ wss.on("connection", function connection(ws, request) {
               type: "chat",
               message: message,
               roomId,
-            }),
+            })
           );
         }
       });
     }
   });
 });
+
+console.log("WebSocket server running on port 8080");
