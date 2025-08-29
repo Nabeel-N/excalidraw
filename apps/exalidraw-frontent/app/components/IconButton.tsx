@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode } from "react";
 
 export function IconButton({
@@ -11,7 +13,11 @@ export function IconButton({
 }) {
   return (
     <div
-      className={`m-2 pointer rounded-full border p-2 bg-black hover:bg-gray ${activated ? "text-red-400" : "text-white"}`}
+      className={`m-1 cursor-pointer rounded-md border p-2 bg-gray-800 transition-colors hover:bg-gray-700 ${
+        activated
+          ? "border-blue-500 text-blue-400"
+          : "border-gray-600 text-white"
+      }`}
       onClick={onClick}
     >
       {icon}
