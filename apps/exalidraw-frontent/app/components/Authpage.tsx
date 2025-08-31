@@ -1,116 +1,155 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@repo/ui/Input"; // Assuming this is a styled input component
+import Link from "next/link";
+import { Input } from "@repo/ui/Input";
 import { HTTP_BACKEND } from "@/config";
 
 export function Authpage({ isSignin }: { isSignin: boolean }) {
-  // 1. Add state for all form fields
+  const router = useRouter();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
-  // 2. Create the function to handle form submission
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  const apiEndpoint = isSignin ? "/signin" : "/signup";
+  const title = isSignin ? "Sign in to your Account" : "Create an Account";
+  const buttonText = isSignin ? "Sign In" : "Sign Up";
+
+  const switchLinkHref = isSignin ? "/signup" : "/signin";
+  const switchLinkText = isSignin
+    ? "Don't have an account?"
+    : "Already have an account?";
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
     setError(null);
 
-    const url = isSignin ? `${HTTP_BACKEND}/signin` : `${HTTP_BACKEND}/signup`;
-    const body = isSignin
-      ? JSON.stringify({ username: email, password })
-      : JSON.stringify({ name, username: email, password });
+    const payload = isSignin
+      ? { username: email, password }
+      : { name, username: email, password };
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body,
-    });
+    try {
+      const response = await fetch(`${HTTP_BACKEND}${apiEndpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
-      if (isSignin) {
-        const { token } = await response.json();
-        localStorage.setItem("authToken", token);
-        // Redirect to a default drawing room after login
-        router.push("/Canvas/general"); // Your room URL is /Canvas/[roomId]
-      } else {
-        // After signup, redirect to the signin page
-        alert("Signup successful! Please sign in.");
-        router.push("/signin");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
       }
-    } else {
-      const errorMsg = isSignin
-        ? "Sign in failed. Please check your credentials."
-        : "Sign up failed. User may already exist.";
-      setError(errorMsg);
-    }
-  }
 
-  // 3. Update the JSX to include all fields and the form handler
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="w-full max-w-sm p-6 space-y-4 bg-gray-800 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center">
-          {isSignin ? "Sign In" : "Create Account"}
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-center text-gray-900">
+          {title}
         </h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          {" "}
+          {/* Adjusted spacing */}
+          {/* Conditionally render the Name input only for the Signup page */}
           {!isSignin && (
             <div>
-              <label htmlFor="name">Name</label>
+              <label
+                htmlFor="name"
+                className="block mb-2 text-sm font-medium text-gray-900"
+              >
+                Name
+              </label>
               <Input
                 id="name"
                 type="text"
-                required
-                placeholder="Your Name"
                 value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setName(e.target.value)
                 }
-                className="w-full p-2 mt-1 bg-gray-700 border border-gray-600 rounded"
+                placeholder="Your Name"
+                required
               />
             </div>
           )}
           <div>
-            <label htmlFor="email">Email</label>
+            <label
+              htmlFor="email"
+              className="block mb-2 text-sm font-medium text-gray-900"
+            >
+              Email Address
+            </label>
             <Input
               id="email"
               type="email"
-              required
-              placeholder="Email"
               value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setEmail(e.target.value)
               }
-              className="w-full p-2 mt-1 bg-gray-700 border border-gray-600 rounded"
+              placeholder="name@company.com"
+              required
             />
           </div>
           <div>
-            <label htmlFor="password">Password</label>
+            <label
+              htmlFor="password"
+              className="block mb-2 text-sm font-medium text-gray-900"
+            >
+              Password
+            </label>
             <Input
               id="password"
               type="password"
-              required
-              placeholder="Password"
               value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setPassword(e.target.value)
               }
-              className="w-full p-2 mt-1 bg-gray-700 border border-gray-600 rounded"
+              placeholder="••••••••"
+              required
             />
           </div>
-
-          {error && <p className="text-sm text-red-500">{error}</p>}
-
-          <div>
+          {error && (
+            <p className="text-sm font-medium text-red-500 text-center">
+              {error}
+            </p>
+          )}
+          <div className="pt-2">
+            {" "}
+            {/* Added padding-top for spacing */}
             <button
               type="submit"
-              className="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded hover:bg-blue-700"
+              disabled={isLoading}
+              className="w-full px-5 py-3 text-base font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:bg-gray-400"
             >
-              {isSignin ? "Sign In" : "Sign Up"}
+              {isLoading ? "Loading..." : buttonText}
             </button>
           </div>
+          <p className="text-sm font-medium text-center text-gray-500">
+            {switchLinkText}{" "}
+            <Link
+              href={switchLinkHref}
+              className="text-blue-600 hover:underline"
+            >
+              {isSignin ? "Sign up" : "Sign in"}
+            </Link>
+          </p>
         </form>
       </div>
     </div>
