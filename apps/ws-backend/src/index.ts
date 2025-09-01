@@ -17,6 +17,7 @@ const users: User[] = [];
 function checkUser(token: string): string | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log(decoded);
     if (typeof decoded == "string") {
       return null;
     }
@@ -29,7 +30,7 @@ function checkUser(token: string): string | null {
   } catch (e) {
     console.log(e);
     return null;
-  }
+  }     
   return null;
 }
 
@@ -52,10 +53,11 @@ wss.on("connection", function connection(ws, request) {
     userId,
     rooms: [],
     ws,
-  });
+  }); 
 
   ws.on("message", async function message(data) {
     let parsedData;
+    console.log(parsedData);
     if (typeof data !== "string") {
       parsedData = JSON.parse(data.toString());
     } else {
@@ -75,9 +77,6 @@ wss.on("connection", function connection(ws, request) {
       user.rooms = user?.rooms.filter((x) => x === parsedData.room);
     }
 
-    console.log("message received");
-    console.log(parsedData);
-
     //CHAT
     if (parsedData.type === "chat") {
       const roomId = parsedData.roomId;
@@ -96,7 +95,7 @@ wss.on("connection", function connection(ws, request) {
         if (user.rooms.includes(roomId)) {
           user.ws.send(
             JSON.stringify({
-              type: "chat",
+              type: "chat", 
               message: message,
               roomId,
             })
