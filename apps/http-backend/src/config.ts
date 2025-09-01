@@ -10,4 +10,4 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 // You can provide default values if needed.
 export const JWT_SECRET = process.env.JWT_SECRET || "supersecretvalue";
 export const DB_HOST = process.env.DB_HOST || "default_host";
-export const PORT = process.env.PORT || "3000";
+export const PORT = process.env.PORT || "3005";

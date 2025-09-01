@@ -1,4 +1,4 @@
-// server.ts
+// src/index.ts
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -17,9 +17,6 @@ if (!JWT_SECRET) {
 }
 
 async function main() {
-  // Dynamically import bcrypt-ts (ESM). This avoids CommonJS/ESM mismatch issues.
-  // If you prefer to use bcryptjs (CJS) instead, replace this with:
-  // import bcrypt from "bcryptjs";
   const bcryptModule = await import("bcrypt-ts");
   const bcrypt: any = (bcryptModule as any).default ?? bcryptModule;
 
@@ -34,26 +31,53 @@ async function main() {
       return;
     }
 
-    const { username, password, name } = parsedData.data;
+    // Accept either `email` or legacy `username` key
+    const raw = parsedData.data as any;
+    const email = raw.email ?? raw.username;
+    const password = raw.password;
+    const name = raw.name;
+
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
 
     try {
+      // Check if user already exists to avoid P2002 on create
+      const existingUser = await prismaClient.user.findUnique({
+        where: { email },
+      });
+      if (existingUser) {
+        res
+          .status(409)
+          .json({ message: "User already exists with this email" });
+        return;
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
+
       const user = await prismaClient.user.create({
         data: {
-          email: username,
+          email,
           password: hashedPassword,
           name,
         },
       });
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET);
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
       res.json({ token });
     } catch (e: any) {
       console.error("signup error:", e);
-      // 409 conflict for existing resource
-      res.status(409).json({
-        message: "User already exists with this email",
-      });
+      // handle Prisma unique constraint (race condition)
+      if (e?.code === "P2002") {
+        res
+          .status(409)
+          .json({ message: "User already exists with this email" });
+      } else {
+        res.status(500).json({ message: "Server error" });
+      }
     }
   });
 
@@ -64,13 +88,18 @@ async function main() {
       return;
     }
 
-    const { username, password } = parsedData.data;
+    const raw = parsedData.data as any;
+    const email = raw.email ?? raw.username;
+    const password = raw.password;
+
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
 
     try {
-      const user = await prismaClient.user.findFirst({
-        where: {
-          email: username,
-        },
+      const user = await prismaClient.user.findUnique({
+        where: { email },
       });
 
       if (!user) {
@@ -84,7 +113,9 @@ async function main() {
         return;
       }
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET);
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
       res.json({ token });
     } catch (err: any) {
       console.error("signin error:", err);
@@ -109,16 +140,30 @@ async function main() {
       }
 
       try {
+        const rawName = (parsedData.data as any).name as string;
+        const slug = String(rawName)
+          .trim()
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .slice(0, 100);
+
         const room = await prismaClient.room.create({
           data: {
-            slug: parsedData.data.name,
+            slug,
             adminId: userId,
           },
         });
         res.json({ roomId: room.id });
       } catch (e: any) {
         console.error("create room error:", e);
-        res.status(409).json({ message: "Room already exists with this name" });
+        if (e?.code === "P2002") {
+          res
+            .status(409)
+            .json({ message: "Room already exists with this name" });
+        } else {
+          res.status(500).json({ message: "Server error" });
+        }
       }
     }
   );
@@ -163,7 +208,7 @@ async function main() {
     }
   });
 
-  const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
+  const PORT = process.env.PORT ? Number(process.env.PORT) : 3005;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
