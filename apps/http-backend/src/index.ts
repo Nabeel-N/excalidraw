@@ -155,6 +155,7 @@ async function main() {
           },
         });
         res.json({ roomId: room.id });
+        return;
       } catch (e: any) {
         console.error("create room error:", e);
         if (e?.code === "P2002") {

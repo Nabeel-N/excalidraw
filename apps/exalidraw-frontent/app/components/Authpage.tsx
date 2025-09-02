@@ -3,12 +3,14 @@
 
 import { FormEvent, useState } from "react";
 import { HTTP_BACKEND } from "@/config";
+import { useRouter } from "next/navigation";
 
 type AuthpageProps = {
   isSignin: boolean;
 };
 
 export default function Authpage({ isSignin }: AuthpageProps) {
+  const rounter = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,13 +56,18 @@ export default function Authpage({ isSignin }: AuthpageProps) {
 
       if (data?.token) {
         try {
-          localStorage.setItem("token", data.token);
+          const localstorge = localStorage.setItem("token", data.token);
+          console.log(localstorge);
         } catch (err) {
           console.warn("Could not save token to localStorage:", err);
         }
       }
 
-      window.location.href = "/";
+      if (isSignin == false) {
+        rounter.push("/signin");
+      } else {
+        rounter.push("create-room");
+      }
     } catch (err: any) {
       setError(err?.message ?? "Unknown error");
     } finally {

@@ -29,7 +29,7 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
   }, [roomId]);
 
   if (!socket) {
-    console.log(socket)
+    console.log(socket);
     return <div>Connecting to server....Loading</div>;
   }
 

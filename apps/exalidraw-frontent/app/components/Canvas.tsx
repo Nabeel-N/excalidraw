@@ -16,9 +16,11 @@ export function Canvas({
   const [game, setGame] = useState<Game>();
   const [selectedTool, setSelectedTool] = useState<Tool>("circle");
 
+
   useEffect(() => {
     game?.setTool(selectedTool);
   }, [selectedTool, game]);
+
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -30,6 +32,7 @@ export function Canvas({
       };
     }
   }, [canvasRef]);
+
 
   return (
     <div
@@ -47,6 +50,7 @@ export function Canvas({
     </div>
   );
 }
+
 
 function Topbar({
   selectedTool,
